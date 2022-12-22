@@ -117,7 +117,7 @@ header {
   width: 100%;
   color: white;
 }
-header a{ color: white; text-decoration: none; }
+header a, header a[href]{ color: white; text-decoration: none; }
 header a[href]:hover{ color: white; text-decoration: underline; }
 header a[href]:visited{ color: white; text-decoration: none; }
 
