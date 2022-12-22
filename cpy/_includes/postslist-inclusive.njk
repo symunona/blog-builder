@@ -1,0 +1,21 @@
+<div class="tmpl-post">
+
+{% for post in postslist %}
+
+    <div class="post">
+
+        <time class="postlist-date" datetime="{{ post.date | htmlDateString }}">{{ post.date | readableDate }}</time>
+
+        <h2 class="post-separator">{{ post.data.title }}</h2>
+
+        <div class="post-content">
+
+        {{ post._templateContent | safe }}
+
+        </div>
+
+    </div>
+
+{% endfor %}
+
+</div>

@@ -1,0 +1,45 @@
+---
+layout: layouts/base.njk
+---
+
+{%- if image %}
+
+<div class="cover" style="background-image: url({{ image }})">
+  <h2>{{ title }}</h2>
+</div>
+
+{%- else %}
+
+<div class="cover-substitute-padding"></div>
+
+<div class="tmpl-post">
+  <time datetime="{{ page.date | htmlDateString }}">{{ page.date | readableDate }}</time>
+
+  <h2>{{ title }}</h2>
+</div>
+
+{%- endif %}
+
+<div class="tmpl-post">
+
+  {{ content | safe }}
+
+  {%- if collections.posts %}
+  {%- set nextPost = collections.posts | getNextCollectionItem(page) %}
+  {%- set previousPost = collections.posts | getPreviousCollectionItem(page) %}
+
+  {%- for tag in tags | filterTagList %}
+  {%- set tagUrl %}/tags/{{ tag | slugify }}/{% endset %}
+  <a href="{{ tagUrl | url }}" class="post-tag">{{ tag }}</a>
+  {%- endfor %}
+
+  {%- if nextPost or previousPost %}
+  <hr>
+
+  <ul class="bottom-pager">
+    {%- if previousPost %}<li class="prev"><a href="{{ previousPost.url | url }}"> <span class="arrow"> ◀ </span> {{ previousPost.data.title }} </a></li>{% endif %}
+    {%- if nextPost %}<li class="next"><a href="{{ nextPost.url | url }}">  {{ nextPost.data.title }} <span class="arrow"> ▶ </span></a></li>{% endif %}
+  </ul>
+  {%- endif %}
+  {%- endif %}
+</div>

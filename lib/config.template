@@ -1,0 +1,9 @@
+<VirtualHost *:80>
+    ServerName <%= serverName %>
+    DocumentRoot <%= documentRoot %>
+    <Directory <%= documentRoot %>/>
+        Order allow,deny
+        Allow from all
+        Require all granted
+    </Directory>
+</VirtualHost>
