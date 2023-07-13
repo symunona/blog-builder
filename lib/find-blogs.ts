@@ -9,7 +9,7 @@
 const fs = require('fs')
 const path = require('path')
 
-export const BLOG_CONFIG_FILE = '.blogrc'
+export const BLOG_CONFIG_FILE = 'blog.md'
 
 /**
  * Returns a list of blogs.

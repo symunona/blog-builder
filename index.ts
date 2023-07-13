@@ -1,6 +1,7 @@
 const path = require('node:path')
 const Eleventy = require('@11ty/eleventy')
 const glob = require('glob')
+const fm = require('front-matter')
 
 import { readFileSync, existsSync, copyFileSync, unlinkSync, mkdirSync, rmdirSync } from 'fs'
 
@@ -89,7 +90,9 @@ async function makeBlog(blogRoot: string) {
 
 	// Do not bail on empty or unparseable file, just fall back to defaults.
 	try {
-		config = new SiteConfig(JSON.parse(configFileRaw))
+		config = new SiteConfig(fm(configFileRaw).attributes)
+		console.warn('Config: ', config)
+		// config = new SiteConfig(JSON.parse(configFileRaw))
 	} catch (e) {
 
 	}

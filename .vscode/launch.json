@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "generate blogs",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "args": [
+                "${workspaceFolder}/index.ts",
+                "/home/symunona/tmp/bulk-export-test/"],
+            "runtimeArgs": ["-r", "ts-node/register"],
+            "env": {
+                "generateApacheConfig": "true",
+                "watch": "false",
+                "DEBUG": "Eleventy*"
+            },
+            "outFiles": [
+                "${workspaceFolder}/**/*.js"
+            ]
+        }
+    ]
+}

@@ -1,7 +1,27 @@
-{% extends "base.njk" %}
+---
+layout: layouts/base.njk
+---
+
 {% block content %}
-  <article>
-    <h1>{{ title }}</h1>
-    {{ content | safe }}
-  </article>
+
+  <div class="cover" style="background-image: url('/images/cover.jpg')">
+    <h2>{{ title }}</h2>
+    <h3>{{ tagline }}</h2>
+  </div>
+  <main class="tmpl-post">
+    <p>{{ content | safe }}</p>
+  </main>
+
+  {% set maxPosts = collections.posts.length %}
+
+  <main class="tmpl-post">
+
+    <h3>{% if maxPosts == 1 %}Post{% else %}{{ maxPosts }} Posts{% endif %}</h3>
+
+    {% set postslist = collections.posts %}
+    {% set postslistCounter = collections.posts | length %}
+    {% include "postslist.njk" %}
+
+  </main>
+
 {% endblock %}

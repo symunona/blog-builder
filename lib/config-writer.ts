@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { template } from 'underscore';
 
@@ -14,6 +14,10 @@ export function generateApacheConfig(publicAddress, blogFsRoot) {
         documentRoot: blogFsRoot,
         serverName: publicAddress
     })
+    if (!existsSync(SITES_AVAILABLE_CONF_PATH)){
+        mkdirSync(SITES_AVAILABLE_CONF_PATH, { recursive: true });
+    }
+
     writeFileSync(confFilePath, configFileToBeWritten)
     console.log(`[Config] Do not forget to enable the site!`)
     console.log(`sudo mv ${confFilePath} /etc/apache2/sites-available/`)

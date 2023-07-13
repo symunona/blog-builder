@@ -24,4 +24,35 @@ First, I need a simple script that copies over the config and template files, me
 
 Then just run a compile, maybe even use github actions to do so.
 
+### Solution
+
+1.- Scrape through the data folders
+2.- Find the indexes
+3.- Build the blogs around them
+
+I realized that I am using the same templates over and over again, so instead of copy-pasting the same eleventy blog-base repo, I create my own defaults.
+
+This repo contains that.
+When a blog wants to overwrite one of the defaults, just have that file, the builder will ignore.
+
+
+### Usage
+
+`ts-node index.ts /path/to/blog/root`
+
+It will find all the `blog.md` files and based on
+their front-matter will merge into it.
+
+### Expected Folder Structure
+
+11ty comes with a structure you want to consider following. I use this:
+```
+posts/     <- default post dir
+  - entry1
+  - entry2
+  - ...
+_includes/
+  - base.njk   <- the main HTML structure
+```
+
 
