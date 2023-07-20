@@ -19,9 +19,9 @@ export function generateApacheConfig(publicAddress, blogFsRoot) {
     }
 
     writeFileSync(confFilePath, configFileToBeWritten)
-    console.log(`[Config] Do not forget to enable the site!`)
-    console.log(`sudo mv ${confFilePath} /etc/apache2/sites-available/`)
-    console.log('sudo ln -s /etc/apache2/sites-available/* /etc/apache2/sites-enabled/')
+    console.warn(`[Config] Do not forget to enable the site!`)
+    console.warn(`sudo mv ${confFilePath} /etc/apache2/sites-available/`)
+    console.warn('sudo ln -s /etc/apache2/sites-available/* /etc/apache2/sites-enabled/')
 
 }
 

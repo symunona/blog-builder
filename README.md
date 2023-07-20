@@ -1,40 +1,34 @@
-### 11ty
+### What is this?
 
-It looked like a good idea at the time to create multiple
-blogs with an opinionated structure, how I'd like to see my texts
-organized.
-
-Still thinking about a better abstraction, but probably 11ty got it right after being at it a couple of hours.
-
----
+Create multiple statically generated blogs with 11ty with an opinionated structure,
+being able to abstract away the parts that are similar/same on all, but leaving it
+up for customization.
 
 ### The problem
-I have multiple blogs, whose content is coming from my obsidian vault with my exporter plugin.
-I want to create separate blogs of these topics using 11ty.
 
-In order to generate blogs, we need:
-- content (from Obsidian, with the Bulk Exporter)
-- templates and config per blog
+I have multiple blogs. The content is coming directly from my obsidian vault
+with [my exporter plugin](https://github.com/symunona/obsidian-bulk-exporter).
 
-Step 1: MERGE content and templates
-Step 2: COMPILE the output blogs
-Step 3: COMMIT & PUSH manual approval gate (?)
+I realized that I am using the same templates over and over again, so
+instead of copy-pasting the same eleventy blog-base repo, I create my own defaults,
+here, under the `cpy` folder.
 
-First, I need a simple script that copies over the config and template files, merges the content together
-
-Then just run a compile, maybe even use github actions to do so.
+When a blog wants to overwrite one of the defaults, just have that file, the builder will ignore.
 
 ### Solution
 
-1.- Scrape through the data folders
-2.- Find the indexes
-3.- Build the blogs around them
+In order to generate blogs, we need:
+- content (from Obsidian, with the Bulk Exporter)
+- templates defaults that are the same in all of them.
+- templates and config per blog
 
-I realized that I am using the same templates over and over again, so instead of copy-pasting the same eleventy blog-base repo, I create my own defaults.
+1. Scrape through the data folders
+2. Find the indexes (blog.md)
+3. Build the blogs around them:
 
-This repo contains that.
-When a blog wants to overwrite one of the defaults, just have that file, the builder will ignore.
-
+4. MERGE content and templates into the same structure
+5. COMPILE the output blogs
+6. COMMIT & PUSH as a manual approval gate (?)
 
 ### Usage
 

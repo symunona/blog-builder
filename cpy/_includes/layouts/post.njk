@@ -4,7 +4,7 @@ layout: layouts/base.njk
 
 {%- if image %}
 
-<div class="cover" style="background-image: url({{ image }})">
+<div class="cover" style="background-image: url(/posts/{{ image }})">
   <h2>{{ title }}</h2>
 </div>
 
@@ -22,7 +22,7 @@ layout: layouts/base.njk
 
 <div class="tmpl-post">
 
-  {{ content | safe }}
+  {{ content | safe | urlAbsolute }}
 
   {%- if collections.posts %}
   {%- set nextPost = collections.posts | getNextCollectionItem(page) %}

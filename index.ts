@@ -3,13 +3,16 @@ const Eleventy = require('@11ty/eleventy')
 const glob = require('glob')
 const fm = require('front-matter')
 
-import { readFileSync, existsSync, copyFileSync, unlinkSync, mkdirSync, rmdirSync } from 'fs'
+const CREATED_FILE_LIST_RESTORE = '.fileToDelete'
+
+import { readFileSync, existsSync, copyFileSync, unlinkSync, mkdirSync, rmdirSync, writeFileSync } from 'fs'
 
 // Find blogs in tree given
 // Iterate through a folder structure recursively
 import { findBlogs, BLOG_CONFIG_FILE } from './lib/find-blogs'
 
 import { generateApacheConfig } from './lib/config-writer'
+import { join } from 'path'
 
 const defaultConfigGenerator = require('./default.eleventy.js')
 
@@ -81,9 +84,27 @@ async function makeBlog(blogRoot: string) {
 	let name: string = path.dirname(blogRoot)
 	name = blogRoot.substring(blogRoot.lastIndexOf(path.sep) + 1)
 
+	// If a build has failed/got paused by the debugger, we store
+	// a file which has all the list of files to be deleted after
+	// the build. This is needed, because we want to be able to
+	// differentiate between files copied over or files already there.
+
+	const restoreFilePath = join(blogRoot, CREATED_FILE_LIST_RESTORE);
+	if (existsSync(restoreFilePath)) {
+		try {
+			console.warn('[Cleanup] Last build did remove the copied files. Doing that now.')
+			const filesAndFoldersToDelete = JSON.parse(readFileSync(restoreFilePath, 'utf-8'))
+			cleanup(filesAndFoldersToDelete)
+			unlinkSync(restoreFilePath)
+		} catch (e) {
+			console.error('Cleanup unsuccessful.')
+			console.error(e);
+		}
+	}
+
 	console.log(`Generating ${name}`)
 
-	let configFileRaw = readFileSync(path.join(blogRoot, BLOG_CONFIG_FILE), 'utf8')
+	let configFileRaw = readFileSync(join(blogRoot, BLOG_CONFIG_FILE), 'utf8')
 	let config: SiteConfig = new SiteConfig()
 
 	// By default
@@ -115,14 +136,10 @@ async function makeBlog(blogRoot: string) {
 		config.config = (eleventyConfig) => {
 			let eleventyConfigToWrite = defaultConfigGenerator(eleventyConfig)
 
-			if (envSettings.watch){
-				// eleventyConfig.setWatchJavaScriptDependencies(false);
-			}
-
 			eleventyConfigToWrite.addFilter("debug", (...args) => {
 				console.warn(...args)
 				return Object.keys(args[0])
-			  })
+			})
 
 			eleventyConfigToWrite.addPassthroughCopy(path.join(blogRoot, 'css'))
 
@@ -139,11 +156,13 @@ async function makeBlog(blogRoot: string) {
 			// TODO is there a config function in the actual sub
 			return eleventyConfigToWrite
 		}
-		console.log('Params:')
-		console.log(config)
+		// console.log('Params:')
+		// console.log(config)
 
 		// Copy over the default templates if they are not present
 		filesAndFoldersToDelete = copyBaseBuilderFiles(blogRoot)
+
+		writeFileSync(restoreFilePath, JSON.stringify(filesAndFoldersToDelete))
 
 		let blog = new Eleventy(config.inputDir, config.outDir, config)
 		let out = await blog.write()
@@ -159,18 +178,23 @@ async function makeBlog(blogRoot: string) {
 		console.error(e)
 	}
 
+	cleanup(filesAndFoldersToDelete);
+	unlinkSync(restoreFilePath)
+
+	console.log('Done!')
+}
+
+function cleanup(filesAndFoldersToDelete) {
 	console.log('[DEL] Removing files and folders used for generation.')
 	console.log('[DEL]', filesAndFoldersToDelete.files)
 	console.log('[DEL]', filesAndFoldersToDelete.folders)
-
 	filesAndFoldersToDelete.files.forEach(unlinkSync)
 	filesAndFoldersToDelete.folders.forEach(folderPath => {
-		try{rmdirSync(folderPath)} catch (e){
+		try { rmdirSync(folderPath) } catch (e) {
 			console.warn('[DEL] failed to remove ', folderPath)
 		}
 	})
 
-	console.log('Done!')
 }
 
 makeBlogs()

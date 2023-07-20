@@ -7,6 +7,8 @@ const pluginRss = require("@11ty/eleventy-plugin-rss");
 const pluginSyntaxHighlight = require("@11ty/eleventy-plugin-syntaxhighlight");
 const pluginNavigation = require("@11ty/eleventy-navigation");
 const { DateTime } = require("luxon");
+const { IMAGE_IN_HTML_LINK } = require("./lib/regex-urls");
+const { default: replaceAll } = require("./lib/replace-all");
 
 
 module.exports = function (eleventyConfig) {
@@ -24,6 +26,31 @@ module.exports = function (eleventyConfig) {
     function filterTagList(tags) {
         return (tags || []).filter(tag => ["all", "nav", "post", "posts"].indexOf(tag) === -1);
     }
+
+    /**
+     * Separate folders are being created for every post. As the
+     * exporter puts the attachments into the posts/assets, we need to
+     * map them to the absolute URL.
+     * This is not an ideal solution.
+     */
+    eleventyConfig.addFilter('urlAbsolute', (value) => {
+        const found = value.val.match(IMAGE_IN_HTML_LINK)
+        let ret = value.val
+
+        if (found) {
+            // Convert relative path to absolute URL
+            found.forEach((link) => {
+                const withoutApostrophes = link.substring(1, link.length - 1)
+                const abs = '/posts/' + withoutApostrophes;
+                console.warn('link:', withoutApostrophes, '->', abs)
+                ret = replaceAll(link, ret, abs)
+            })
+
+            value.val = ret;
+        }
+
+        return value;
+    });
 
     eleventyConfig.addFilter("filterTagList", filterTagList)
 
