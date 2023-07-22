@@ -27,7 +27,7 @@
 
     <main{% if templateClass %} class="{{ templateClass }}"{% endif %}>
 
-      {{ content | safe | urlAbsolute }}
+      {{ content | safe | urlAbsolute() }}
     </main>
 
     <footer></footer>

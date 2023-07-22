@@ -142,6 +142,8 @@ async function makeBlog(blogRoot: string) {
 			})
 
 			eleventyConfigToWrite.addPassthroughCopy(path.join(blogRoot, 'css'))
+			eleventyConfigToWrite.addPassthroughCopy(path.join(blogRoot, 'assets'))
+			eleventyConfigToWrite.addPassthroughCopy(path.join(blogRoot, 'posts/assets'))
 
 			if (config.staticPassThrough && config.staticPassThrough.length) {
 				config.staticPassThrough.forEach((passthroughCopy) => {
