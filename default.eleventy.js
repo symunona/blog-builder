@@ -9,6 +9,8 @@ const pluginNavigation = require("@11ty/eleventy-navigation");
 const { DateTime } = require("luxon");
 const { IMAGE_IN_HTML_LINK } = require("./lib/regex-urls");
 const { default: replaceAll } = require("./lib/replace-all");
+const { existsSync } = require("fs");
+const { join } = require("path");
 
 
 module.exports = function (eleventyConfig) {
@@ -36,17 +38,41 @@ module.exports = function (eleventyConfig) {
     eleventyConfig.addFilter('urlAbsolute', function (value) {
         const found = value.val.match(IMAGE_IN_HTML_LINK)
         let ret = value.val
-        let root = this.ctx.page.filePathStem.substring(0, this.ctx.page.filePathStem.lastIndexOf('/'))
-        if (!root.endsWith('/')) {
-            root += '/'
-        }
+        const root = this.ctx.blogRoot
+
+        let rootOfFile = root +
+            this.ctx.page.filePathStem.substring(0,
+                this.ctx.page.filePathStem.lastIndexOf('/'))
+        if (!rootOfFile.endsWith('/')) { rootOfFile += '/' }
+
         if (found) {
             // Convert relative path to absolute URL
             found.forEach((link) => {
                 const withoutApostrophes = link.substring(1, link.length - 1)
-                let abs = withoutApostrophes.startsWith('http') ? withoutApostrophes : root + withoutApostrophes;
-                console.warn('link:', withoutApostrophes, '->', abs)
-                ret = replaceAll(link, ret, abs)
+                if (withoutApostrophes.startsWith('http')) {
+                    // console.log('[LINK0] absolute', withoutApostrophes)
+                    return;
+                }
+
+                const guessAbsoluteForImageResource = join(root, withoutApostrophes)
+                const guessRelativeForImageResource = join(rootOfFile, withoutApostrophes)
+                const guessPostForImageResource = join(root, 'posts', withoutApostrophes)
+
+                if (existsSync(guessAbsoluteForImageResource)) {
+                    ret = replaceAll(link, ret, relativeToRoot(guessAbsoluteForImageResource, root))
+                    // console.log('[LINK1] ', guessAbsoluteForImageResource)
+                } else if (existsSync(guessRelativeForImageResource)) {
+                    ret = replaceAll(link, ret, relativeToRoot(guessRelativeForImageResource, root))
+                    // console.log('[LINK2] ', guessAbsoluteForImageResource)
+                } else if (existsSync(guessPostForImageResource)) {
+                    ret = replaceAll(link, ret, relativeToRoot(guessPostForImageResource, root))
+                    // console.log('[LINK3] ', relativeToRoot(guessPostForImageResource, root))
+                } else {
+                    console.error(`File not found in any locations: ${withoutApostrophes}`)
+                    console.log('guessAbsoluteForImageResource:',guessAbsoluteForImageResource)
+                    console.log('guessRelativeForImageResource:',guessRelativeForImageResource)
+                    console.log('guessPostForImageResource:',guessPostForImageResource)
+                }
             })
 
             value.val = ret;
@@ -59,4 +85,24 @@ module.exports = function (eleventyConfig) {
 
     return eleventyConfig
 
+}
+
+
+function findCommonStartingPart(str1, str2) {
+    let commonPart = '';
+    const minLength = Math.min(str1.length, str2.length);
+
+    for (let i = 0; i < minLength; i++) {
+        if (str1[i] === str2[i]) {
+            commonPart += str1[i];
+        } else {
+            break;
+        }
+    }
+
+    return commonPart;
+}
+
+function relativeToRoot(fullPath, root) {
+    return fullPath.substring(root.length)
 }

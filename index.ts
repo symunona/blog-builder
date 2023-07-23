@@ -1,7 +1,7 @@
 const path = require('node:path')
 const Eleventy = require('@11ty/eleventy')
 const glob = require('glob')
-const fm = require('front-matter')
+const frontMatterParser = require('front-matter')
 
 const CREATED_FILE_LIST_RESTORE = '.fileToDelete'
 
@@ -62,7 +62,7 @@ export type SiteSpec = string | [string, SiteConfig]
 // TODO parse this from the input!
 const envSettings: GenericConfig = new GenericConfig();
 
-function makeBlogs() {
+async function makeBlogs() {
 	let pathToFindBlogs: string = process.argv[2]
 	if (!pathToFindBlogs) {
 		pathToFindBlogs = process.cwd()
@@ -72,13 +72,13 @@ function makeBlogs() {
 	}
 	let blogs: Array<string> = findBlogs(pathToFindBlogs)
 	if (!blogs.length) {
-		console.log('No blogs found. Bailing.')
+		console.log('No blogs found. Exit.')
 	}
-	console.log('Found the following:', blogs)
-	blogs.map(makeBlog)
+	console.log('Found the following:\n', blogs.join('\n'))
+	for (let i = 0; i < blogs.length; i++){
+		await makeBlog(blogs[i])
+	}
 }
-
-
 
 async function makeBlog(blogRoot: string) {
 	let name: string = path.dirname(blogRoot)
@@ -102,7 +102,7 @@ async function makeBlog(blogRoot: string) {
 		}
 	}
 
-	console.log(`Generating ${name}`)
+	console.log(`---------------------------< Generating ${name}`)
 
 	let configFileRaw = readFileSync(join(blogRoot, BLOG_CONFIG_FILE), 'utf8')
 	let config: SiteConfig = new SiteConfig()
@@ -111,11 +111,11 @@ async function makeBlog(blogRoot: string) {
 
 	// Do not bail on empty or unparseable file, just fall back to defaults.
 	try {
-		config = new SiteConfig(fm(configFileRaw).attributes)
-		console.warn('Config: ', config)
+		config = new SiteConfig(frontMatterParser(configFileRaw).attributes)
 		// config = new SiteConfig(JSON.parse(configFileRaw))
 	} catch (e) {
-
+		console.error('something went really wrong')
+		debugger
 	}
 	config.inputDir = path.join(blogRoot, config.inputDir)
 	config.outDir = path.join(blogRoot, config.outDir)
@@ -133,7 +133,8 @@ async function makeBlog(blogRoot: string) {
 	let filesAndFoldersToDelete
 
 	try {
-		config.config = (eleventyConfig) => {
+		config.config = function(eleventyConfig) {
+			eleventyConfig.addGlobalData('blogRoot', blogRoot);
 			let eleventyConfigToWrite = defaultConfigGenerator(eleventyConfig)
 
 			eleventyConfigToWrite.addFilter("debug", (...args) => {
@@ -161,16 +162,15 @@ async function makeBlog(blogRoot: string) {
 		// console.log('Params:')
 		// console.log(config)
 
-		// Copy over the default templates if they are not present
+		// Copy over the default templates if they are not present, save
+		// the list in case of script failure.
 		filesAndFoldersToDelete = copyBaseBuilderFiles(blogRoot)
-
 		writeFileSync(restoreFilePath, JSON.stringify(filesAndFoldersToDelete))
 
 		let blog = new Eleventy(config.inputDir, config.outDir, config)
 		let out = await blog.write()
 
-		console.log('Generated blog:')
-		console.log(out)
+		console.log('Generated blog.')
 		if (envSettings.generateApacheConfig) {
 			generateApacheConfig(config.publicAddress, path.join(blogRoot, config.dir.output))
 		}
@@ -187,20 +187,19 @@ async function makeBlog(blogRoot: string) {
 }
 
 function cleanup(filesAndFoldersToDelete) {
-	console.log('[DEL] Removing files and folders used for generation.')
-	console.log('[DEL]', filesAndFoldersToDelete.files)
-	console.log('[DEL]', filesAndFoldersToDelete.folders)
+	// console.log('[DEL] Removing files and folders used for generation.')
+	// console.log('[DEL]', filesAndFoldersToDelete.files)
+	// console.log('[DEL]', filesAndFoldersToDelete.folders)
 	filesAndFoldersToDelete.files.forEach(unlinkSync)
 	filesAndFoldersToDelete.folders.forEach(folderPath => {
 		try { rmdirSync(folderPath) } catch (e) {
-			console.warn('[DEL] failed to remove ', folderPath)
+			// console.warn('[DEL] failed to remove ', folderPath)
 		}
 	})
 
 }
 
 makeBlogs()
-
 
 
 /**
@@ -229,19 +228,19 @@ function copyBaseBuilderFiles(blogRoot) {
 		// See if this file exists. If it does not, copy it there...
 		if (!existsSync(fileToLookFor)) {
 			let baseTemplatePath = path.join(blogBuilderBasicCpyDir, relativePath);
-			console.log('[CPY] copy basic blog files', relativePath, baseTemplatePath)
+			// console.log('[CPY] copy basic blog files', relativePath, baseTemplatePath)
 
 			let folder = fileToLookFor.substring(0, fileToLookFor.lastIndexOf(path.sep))
 			// console.log('[CPY] checking if target folder exists', folder)
 			let foldersCreatedThisPass = recursivelyCreatePath(folder)
 			pathCreated = pathCreated.concat(foldersCreatedThisPass)
 			if (foldersCreatedThisPass.length) {
-				console.log('[MKDIR] folders created: ', foldersCreatedThisPass)
+				// console.log('[MKDIR] folders created: ', foldersCreatedThisPass)
 			}
 			copyFileSync(baseTemplatePath, fileToLookFor)
 			_baseFilesCopied.push(fileToLookFor)
 		} else {
-			console.log('[CPY] Found OVERWRITE, skipping', relativePath)
+			// console.log('[CPY] Found OVERWRITE, skipping', relativePath)
 		}
 	})
 
