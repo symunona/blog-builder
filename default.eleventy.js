@@ -68,10 +68,10 @@ module.exports = function (eleventyConfig) {
                     ret = replaceAll(link, ret, relativeToRoot(guessPostForImageResource, root))
                     // console.log('[LINK3] ', relativeToRoot(guessPostForImageResource, root))
                 } else {
-                    console.error(`File not found in any locations: ${withoutApostrophes}`)
-                    console.log('guessAbsoluteForImageResource:',guessAbsoluteForImageResource)
-                    console.log('guessRelativeForImageResource:',guessRelativeForImageResource)
-                    console.log('guessPostForImageResource:',guessPostForImageResource)
+                    console.error(`File not found in any locations: ${withoutApostrophes.substring(0, 30)}`)
+                    // console.log('guessAbsoluteForImageResource:',guessAbsoluteForImageResource.substring(0, 30))
+                    // console.log('guessRelativeForImageResource:',guessRelativeForImageResource.substring(0, 30))
+                    // console.log('guessPostForImageResource:',guessPostForImageResource.substring(0, 30))
                 }
             })
 
