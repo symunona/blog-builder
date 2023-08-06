@@ -4,7 +4,16 @@ layout: layouts/base.njk
 
 {% block content %}
 
-  <div class="cover" style="background-image: url('/images/cover.jpg')">
+<style>
+  .cover{
+      {% if background %}
+        background-image: url('{{ background }}');
+      {% else %}
+        background-image: url('/images/cover.jpg');
+      {% endif %}
+  }
+</style>
+  <div class="cover">
     <h2>{{ title }}</h2>
     <h3>{{ tagline }}</h2>
   </div>
