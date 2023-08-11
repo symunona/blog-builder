@@ -28,6 +28,7 @@
   "dependencies": {
     "@types/node": "^18.11.9",
     "@types/underscore": "^1.11.4",
+    "cheerio": "^1.0.0-rc.12",
     "cli-spinners": "^2.7.0",
     "front-matter": "^4.0.2",
     "ora": "^6.1.2",

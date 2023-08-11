@@ -11,6 +11,7 @@ const { IMAGE_IN_HTML_LINK } = require("./lib/regex-urls");
 const { default: replaceAll } = require("./lib/replace-all");
 const { existsSync } = require("fs");
 const { join } = require("path");
+const cheerio = require('cheerio');
 
 
 module.exports = function (eleventyConfig) {
@@ -36,18 +37,40 @@ module.exports = function (eleventyConfig) {
      * This is not an ideal solution.
      */
     eleventyConfig.addFilter('urlAbsolute', function (value) {
-        const found = value.val.match(IMAGE_IN_HTML_LINK)
         let ret = value.val
         const root = this.ctx.blogRoot
-
         let rootOfFile = root +
             this.ctx.page.filePathStem.substring(0,
                 this.ctx.page.filePathStem.lastIndexOf('/'))
         if (!rootOfFile.endsWith('/')) { rootOfFile += '/' }
 
-        if (found) {
+        // Replace Local Relative links!
+        const $ = cheerio.load(value.val)
+        const hrefValues = $('a').map((index, element) => {return {
+            href: $(element).attr('href'),
+            element
+        }}).get();
+
+        console.log(' [ROOT]', hrefValues.length, root, rootOfFile)
+
+        for(let i = 0; i < hrefValues.length; i++){
+            const link = hrefValues[i]
+
+            if (link.href && link.href !== '/' && !link.href.startsWith('http')){
+                let relativeLink = removeOverlap(root, link.href)
+                if (!relativeLink.startsWith('/')){
+                    relativeLink = '/' + relativeLink
+                }
+                $(link.element).attr('href', relativeLink);
+                console.log('   [LINK] local: ', relativeLink)
+            }
+        }
+        ret = $.html()
+
+        const foundImages = value.val.match(IMAGE_IN_HTML_LINK)
+        if (foundImages) {
             // Convert relative path to absolute URL
-            found.forEach((link) => {
+            foundImages.forEach((link) => {
                 const withoutApostrophes = link.substring(1, link.length - 1)
                 if (withoutApostrophes.startsWith('http')) {
                     // console.log('[LINK0] absolute', withoutApostrophes)
@@ -105,4 +128,16 @@ function findCommonStartingPart(str1, str2) {
 
 function relativeToRoot(fullPath, root) {
     return fullPath.substring(root.length)
+}
+
+/**
+ * @param {String} firstString
+ * @param {String} secondString
+ * @returns {String}
+ */
+function removeOverlap(firstString, secondString) {
+    // Find the overlapping part
+    let i = firstString.length;
+    while(!secondString.startsWith(firstString.substring(firstString.length - i)) && i > 0){ i-- }
+    return secondString.substring(i)
 }
