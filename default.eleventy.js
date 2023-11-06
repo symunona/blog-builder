@@ -72,7 +72,7 @@ module.exports = function (eleventyConfig) {
             // Convert relative path to absolute URL
             foundImages.forEach((link) => {
                 const withoutApostrophes = link.substring(1, link.length - 1)
-                if (withoutApostrophes.startsWith('http')) {
+                if (withoutApostrophes.startsWith('http') || withoutApostrophes.startsWith('data:')) {
                     // console.log('[LINK0] absolute', withoutApostrophes)
                     return;
                 }
