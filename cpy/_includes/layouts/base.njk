@@ -4,10 +4,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title or metadata.title }}</title>
-    <meta name="description" content="{{ description or metadata.description }}">
+    <meta name="description" content="{{ description or excerpt or metadata.description }}">
+    <meta property=”og:title” content="{{ title }}">
+    <meta property=”og:description” content="{{ excerpt }}">
 
-    {#- Uncomment this if you’d like folks to know that you used Eleventy to build your site!  #}
-    {#- <meta name="generator" content="{{ eleventy.generator }}"> #}
+    <meta name="generator" content="Obsidian Bulk Exporter chained with {{ eleventy.generator }}">
 
     <link rel="stylesheet" href="{{ '/css/index.css' | url }}">
     <link rel="stylesheet" href="{{ '/css/prism-base16-monokai.dark.css' | url }}">
