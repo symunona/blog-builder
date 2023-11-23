@@ -31,6 +31,7 @@
 
     <main{% if templateClass %} class="{{ templateClass }}"{% endif %}>
 
+      {% logFile 'Rendering ' + page.inputPath %}
       {{ content | safe | urlAbsolute() }}
     </main>
 

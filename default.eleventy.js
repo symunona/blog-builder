@@ -19,6 +19,11 @@ module.exports = function (eleventyConfig) {
     eleventyConfig.addPlugin(pluginNavigation);
     eleventyConfig.addPlugin(pluginRss);
 
+    eleventyConfig.addShortcode('logFile', function(file) {
+        console.log(file);
+        return ""; // Return an empty string so nothing is added to the template
+    });
+
     eleventyConfig.ignores.add('**/node_modules/**')
     eleventyConfig.addFilter('htmlDateString', (dateObj) => {
         return DateTime.fromJSDate(dateObj, { zone: 'utc' }).toFormat('yyyy-LL-dd'); ``
@@ -51,13 +56,11 @@ module.exports = function (eleventyConfig) {
             element
         }}).get();
 
-        console.log(' [ROOT]', hrefValues.length, root, rootOfFile)
-
         for(let i = 0; i < hrefValues.length; i++){
             const link = hrefValues[i]
 
             if (link.href && link.href !== '/' && !link.href.startsWith('http')){
-                let relativeLink = removeOverlap(root, link.href)
+                let relativeLink = link.href
                 if (!relativeLink.startsWith('/')){
                     relativeLink = '/' + relativeLink
                 }
@@ -71,7 +74,9 @@ module.exports = function (eleventyConfig) {
         if (foundImages) {
             // Convert relative path to absolute URL
             foundImages.forEach((link) => {
-                const withoutApostrophes = link.substring(1, link.length - 1)
+
+                let withoutApostrophes = link.substring(1, link.length - 1)
+                withoutApostrophes = withoutApostrophes.substring(withoutApostrophes.lastIndexOf('"') + 1);
                 if (withoutApostrophes.startsWith('http') || withoutApostrophes.startsWith('data:')) {
                     // console.log('[LINK0] absolute', withoutApostrophes)
                     return;
@@ -82,24 +87,24 @@ module.exports = function (eleventyConfig) {
                 const guessPostForImageResource = join(root, 'posts', withoutApostrophes)
 
                 if (existsSync(guessAbsoluteForImageResource)) {
-                    ret = replaceAll(link, ret, relativeToRoot(guessAbsoluteForImageResource, root))
-                    // console.log('[LINK1] ', guessAbsoluteForImageResource)
+                    ret = replaceAll(withoutApostrophes, ret, '/' + relativeToRoot(guessAbsoluteForImageResource, root))
+                    console.log('   [IMG1] ', guessAbsoluteForImageResource)
                 } else if (existsSync(guessRelativeForImageResource)) {
-                    ret = replaceAll(link, ret, relativeToRoot(guessRelativeForImageResource, root))
-                    // console.log('[LINK2] ', guessAbsoluteForImageResource)
+                    ret = replaceAll(withoutApostrophes, ret, '/' + relativeToRoot(guessRelativeForImageResource, root))
+                    console.log('   [IMG2] ', guessAbsoluteForImageResource)
                 } else if (existsSync(guessPostForImageResource)) {
-                    ret = replaceAll(link, ret, relativeToRoot(guessPostForImageResource, root))
-                    // console.log('[LINK3] ', relativeToRoot(guessPostForImageResource, root))
+                    ret = replaceAll(withoutApostrophes, ret, '/' + relativeToRoot(guessPostForImageResource, root))
+                    console.log('   [IMG3] ', relativeToRoot(guessPostForImageResource, root))
                 } else {
-                    console.error(`File not found in any locations: ${withoutApostrophes.substring(0, 30)}`)
+                    console.error(`  [IMG LINK ERROR] File not found in any locations: ${withoutApostrophes.substring(0, 30)}`)
+                    console.log('IMG LINK', link)
                     // console.log('guessAbsoluteForImageResource:',guessAbsoluteForImageResource.substring(0, 30))
                     // console.log('guessRelativeForImageResource:',guessRelativeForImageResource.substring(0, 30))
                     // console.log('guessPostForImageResource:',guessPostForImageResource.substring(0, 30))
                 }
             })
-
-            value.val = ret;
         }
+        value.val = ret;
 
         return value;
     });
@@ -110,34 +115,6 @@ module.exports = function (eleventyConfig) {
 
 }
 
-
-function findCommonStartingPart(str1, str2) {
-    let commonPart = '';
-    const minLength = Math.min(str1.length, str2.length);
-
-    for (let i = 0; i < minLength; i++) {
-        if (str1[i] === str2[i]) {
-            commonPart += str1[i];
-        } else {
-            break;
-        }
-    }
-
-    return commonPart;
-}
-
 function relativeToRoot(fullPath, root) {
     return fullPath.substring(root.length)
-}
-
-/**
- * @param {String} firstString
- * @param {String} secondString
- * @returns {String}
- */
-function removeOverlap(firstString, secondString) {
-    // Find the overlapping part
-    let i = firstString.length;
-    while(!secondString.startsWith(firstString.substring(firstString.length - i)) && i > 0){ i-- }
-    return secondString.substring(i)
 }

@@ -5,4 +5,4 @@ export const MARKDOWN_ATTACHMENT_URL_REGEXP = /!\[(.*?)\]\(((.*?)\.(\w+))\)/g;
 export const LINK_URL_REGEXP = /[^!]\[(.*?)\]\(((.*?))\)/g;
 export const EMBED_URL_REGEXP = /!\[\[(.*?)\]\]/g;
 
-export const IMAGE_IN_HTML_LINK = /"(\S+(?:png|jpe?g|gif|webp)\S*)"/ig
+export const IMAGE_IN_HTML_LINK = /<img[^>]+src="(\S+(?:png|jpe?g|gif|webp)\S*)"/ig

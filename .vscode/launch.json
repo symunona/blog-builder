@@ -13,7 +13,7 @@
             ],
             "args": [
                 "${workspaceFolder}/index.ts",
-                "/home/symunona/tmp/bulk-export-test/"],
+                "/home/symunona/tmp/bulk-export-test/clarity/"],
             "runtimeArgs": ["-r", "ts-node/register"],
             "env": {
                 "generateApacheConfig": "true",
