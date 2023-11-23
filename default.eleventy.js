@@ -60,10 +60,7 @@ module.exports = function (eleventyConfig) {
             const link = hrefValues[i]
 
             if (link.href && link.href !== '/' && !link.href.startsWith('http')){
-                let relativeLink = link.href
-                if (!relativeLink.startsWith('/')){
-                    relativeLink = '/' + relativeLink
-                }
+                let relativeLink = makeAbs(link.href)
                 $(link.element).attr('href', relativeLink);
                 console.log('   [LINK] local: ', relativeLink)
             }
@@ -87,13 +84,13 @@ module.exports = function (eleventyConfig) {
                 const guessPostForImageResource = join(root, 'posts', withoutApostrophes)
 
                 if (existsSync(guessAbsoluteForImageResource)) {
-                    ret = replaceAll(withoutApostrophes, ret, '/' + relativeToRoot(guessAbsoluteForImageResource, root))
+                    ret = replaceAll(withoutApostrophes, ret, makeAbs(relativeToRoot(guessAbsoluteForImageResource, root)))
                     console.log('   [IMG1] ', guessAbsoluteForImageResource)
                 } else if (existsSync(guessRelativeForImageResource)) {
-                    ret = replaceAll(withoutApostrophes, ret, '/' + relativeToRoot(guessRelativeForImageResource, root))
+                    ret = replaceAll(withoutApostrophes, ret, makeAbs(relativeToRoot(guessRelativeForImageResource, root)))
                     console.log('   [IMG2] ', guessAbsoluteForImageResource)
                 } else if (existsSync(guessPostForImageResource)) {
-                    ret = replaceAll(withoutApostrophes, ret, '/' + relativeToRoot(guessPostForImageResource, root))
+                    ret = replaceAll(withoutApostrophes, ret, makeAbs(relativeToRoot(guessPostForImageResource, root)))
                     console.log('   [IMG3] ', relativeToRoot(guessPostForImageResource, root))
                 } else {
                     console.error(`  [IMG LINK ERROR] File not found in any locations: ${withoutApostrophes.substring(0, 30)}`)
@@ -113,6 +110,13 @@ module.exports = function (eleventyConfig) {
 
     return eleventyConfig
 
+}
+
+function makeAbs(relativeLink){
+    if (!relativeLink.startsWith('/')){
+        relativeLink = '/' + relativeLink
+    }
+    return relativeLink
 }
 
 function relativeToRoot(fullPath, root) {
