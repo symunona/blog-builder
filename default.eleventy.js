@@ -13,7 +13,6 @@ const { existsSync } = require("fs");
 const { join } = require("path");
 const cheerio = require('cheerio');
 
-
 module.exports = function (eleventyConfig) {
     eleventyConfig.addPlugin(pluginSyntaxHighlight);
     eleventyConfig.addPlugin(pluginNavigation);
@@ -49,6 +48,7 @@ module.exports = function (eleventyConfig) {
                 this.ctx.page.filePathStem.lastIndexOf('/'))
         if (!rootOfFile.endsWith('/')) { rootOfFile += '/' }
 
+
         // Replace Local Relative links!
         const $ = cheerio.load(value.val)
         const hrefValues = $('a').map((index, element) => {return {
@@ -59,14 +59,40 @@ module.exports = function (eleventyConfig) {
         for(let i = 0; i < hrefValues.length; i++){
             const link = hrefValues[i]
 
-            if (link.href && link.href !== '/' && !link.href.startsWith('http')){
+            if (link.href && link.href !== '/' && !link.href.startsWith('http') && !link.href.startsWith('//')){
                 let relativeLink = makeAbs(link.href)
                 $(link.element).attr('href', relativeLink);
                 console.log('   [LINK] local: ', relativeLink)
             }
         }
+
+        // From Markdown, by default eleventy renders img tags. Instead
+        // of images, we need to check what to do with the embed if it's
+        // a certain streaming provider. As everything is on youtube,
+        // this just works for youtube now, matching the link, using
+        // a dummy method to replace the actual image to a youtube embed.
+
+        const imgHrefs = $('img').map((index, element) => {return {
+            src: $(element).attr('src'),
+            element
+        }}).get();
+
+        for(let i = 0; i < imgHrefs.length; i++) {
+            const img = imgHrefs[i]
+            // Replace all youtube
+            if (img.src.indexOf('youtube.com') > -1){
+                // This is a video embed, replace!
+                const videoId = img.src.split('watch?v=')[1]
+                console.warn('   [YouTube Embed] ', img.src, videoId)
+                $(img.element).after(`<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}"></iframe>`)
+                $(img.element).remove()
+            }
+        }
+
         ret = $.html()
 
+
+        // Replace all local images
         const foundImages = value.val.match(IMAGE_IN_HTML_LINK)
         if (foundImages) {
             // Convert relative path to absolute URL
@@ -74,6 +100,7 @@ module.exports = function (eleventyConfig) {
 
                 let withoutApostrophes = link.substring(1, link.length - 1)
                 withoutApostrophes = withoutApostrophes.substring(withoutApostrophes.lastIndexOf('"') + 1);
+
                 if (withoutApostrophes.startsWith('http') || withoutApostrophes.startsWith('data:')) {
                     // console.log('[LINK0] absolute', withoutApostrophes)
                     return;
