@@ -325,3 +325,8 @@ blockquote{
 
 
 iframe{ border: 0 }
+
+pre[class*="language-"]{
+  padding: 10px !important;
+  line-break: normal;
+}
