@@ -19,7 +19,7 @@ module.exports = function (eleventyConfig) {
     eleventyConfig.addPlugin(pluginRss);
 
     eleventyConfig.addShortcode('logFile', function(file) {
-        console.log(file);
+        console.log('logFile', file);
         return ""; // Return an empty string so nothing is added to the template
     });
 
@@ -83,7 +83,7 @@ module.exports = function (eleventyConfig) {
             if (img.src.indexOf('youtube.com') > -1){
                 // This is a video embed, replace!
                 const videoId = img.src.split('watch?v=')[1]
-                console.warn('   [YouTube Embed] ', img.src, videoId)
+                // console.warn('   [YouTube Embed] ', img.src, videoId)
                 $(img.element).after(`<iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}"></iframe>`)
                 $(img.element).remove()
             }

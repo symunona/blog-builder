@@ -141,7 +141,7 @@ async function makeBlog(blogRoot: string) {
 				console.warn(...args)
 				return Object.keys(args[0])
 			})
-			
+
 			eleventyConfigToWrite.addPassthroughCopy(path.join(blogRoot, 'css'))
 			eleventyConfigToWrite.addPassthroughCopy(path.join(blogRoot, 'assets'))
 			eleventyConfigToWrite.addPassthroughCopy(path.join(blogRoot, 'posts/assets'))
